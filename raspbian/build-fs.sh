@@ -64,21 +64,24 @@ DNS_SEARCH=""
 FORCE_CREATE_CHROOT=false
 CONFIGURE=true
 ADD_REPO=true
-INSTALL_EXTRA_PACKAGES=true
+INSTALL_EXTRA=true
 ENTER_CHROOT=false
+CLEAN_APT=true
 
 ROOT_PASSWORD="Change_Me"
 
-LINUX_IMAGE_VERSION="3.2.0"
-LINUX_IMAGE_UPSTEP="3"
-LINUX_IMAGE="linux-image-${LINUX_IMAGE_VERSION}-${LINUX_IMAGE_UPSTEP}-rpi"
-KERNEL_IMG="vmlinuz-${LINUX_IMAGE_VERSION}-${LINUX_IMAGE_UPSTEP}-rpi"
+KERNEL_PKG_VERSION="3.2.0"
+KERNEL_PKG_UPSTEP="3"
+KERNEL_PKG="linux-image-${KERNEL_PKG_VERSION}-${KERNEL_PKG_UPSTEP}-rpi"
+KERNEL_IMG="vmlinuz-${KERNEL_PKG_VERSION}-${KERNEL_PKG_UPSTEP}-rpi"
 
+EXTRA_PACKAGES="adduser,cron,ifupdown,iptables,iputils-ping,isc-dhcp-client,kmod,logrotate,net-tools"
+EXTRA_PACKAGES="${EXTRA_PACKAGES},netbase,procps,rsyslog,udev,vim-tiny,locales,openssh-server,resolvconf"
 
 ######################################################################
 #Overwrite Config 
 #ADD_REPO=false
-#INSTALL_EXTRA_PACKAGES=false
+#INSTALL_EXTRA=false
 #ENTER_CHROOT=true
 
 HOSTNAME="imco100"
@@ -120,7 +123,7 @@ function create_chroot () {
   mkdir ${FS_DIR}
 
   echo "${PREPEND} Running debootstrap ..."
-  debootstrap --arch=${ARCH} --foreign ${SUITE} ${FS_DIR} ${REPO}
+  debootstrap  --arch=${ARCH} --variant=minbase --include="${EXTRA_PACKAGES},${KERNEL_PKG}" --foreign ${SUITE} ${FS_DIR} ${REPO}
   echo "${PREPEND} Finshed debootstrap ..."
   cp /usr/bin/qemu-arm-static ${FS_DIR}/usr/bin/qemu-arm-static
   echo "${PREPEND} Placed qemu-arm-static in chroot"
@@ -154,25 +157,12 @@ function mount_for_chroot () {
   mount | grep "${FS_DIR}/dev"  > /dev/null || mount --bind /dev ${FS_DIR}/dev
 }
 
-function install_packages () {
+function install_extra () {
   
   local boot_dir="${FIRMWARE_REPO}/boot"
   local gpu_dir="${FIRMWARE_REPO}/hardfp/opt/vc"
 
   mount_for_chroot
-
-  # locales for embedded systems
-  echo "${PREPEND} Installing locales"
-  eval ${CHROOT_NO_INTERACTIVE} ${FS_DIR} apt-get -y install locales
-  # this should grant us access via ssh
-  echo "${PREPEND} Installing ssh server"
-  eval ${CHROOT_NO_INTERACTIVE} ${FS_DIR} apt-get -y install openssh-server
-  # this will allow to specify dns info in /et/network/interfaces
-  echo "${PREPEND} Installing reslovconf" 
-  eval ${CHROOT_NO_INTERACTIVE} ${FS_DIR} apt-get -y install resolvconf 
-  # use the stock raspbian kernel
-  echo "${PREPEND} Installing Kernel"
-  eval ${CHROOT_NO_INTERACTIVE} ${FS_DIR} apt-get -y install ${LINUX_IMAGE}
 
   # seems that there is no package for raspberry pi boot/firmware
   # so will do some manualy copying
@@ -313,6 +303,12 @@ EOD
 
 }
 
+function clean_apt_cache () {
+  mount_for_chroot
+  echo "${PREPEND} Cleaning apt cache..."
+  eval ${CHROOT} ${FS_DIR} apt-get clean
+}
+
 ######################################################################
 # MAIN
 
@@ -343,12 +339,16 @@ if ${ADD_REPO}; then
   add_repo
 fi
 
-if ${INSTALL_EXTRA_PACKAGES}; then
-  install_packages
+if ${INSTALL_EXTRA}; then
+  install_extra
 fi
 
 if ${ENTER_CHROOT}; then
   enter_chroot
+fi
+
+if ${CLEAN_APT}; then
+  clean_apt_cache
 fi
 
 onexit 0

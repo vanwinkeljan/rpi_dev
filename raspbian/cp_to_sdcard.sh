@@ -60,6 +60,8 @@ if [ `id -u` -ne 0 ]; then
   onexit 1
 fi
 
+mount | grep ${SDCARD_DEV}1 | umount ${SDCARD_DEV}1
+mount | grep ${SDCARD_DEV}2 | umount ${SDCARD_DEV}2
 
 mount ${SDCARD_DEV}2 ${MOUNT_DIR}
 
