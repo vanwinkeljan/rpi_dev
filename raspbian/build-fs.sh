@@ -184,7 +184,7 @@ function install_packages () {
   echo "${PREPEND} Adding config.txt file (kernel=${KERNEL_IMG}; GPU RAM=${GPU_RAM}MB)"
   cat > ${FS_DIR}/boot/config.txt << EOF
 kernel=${KERNEL_IMG}
-gpu_mem=${GPU_MEM}
+gpu_mem=${GPU_RAM}
 EOF
 
   # kernel arguments
@@ -319,6 +319,12 @@ EOD
 if [ `id -u` -ne 0 ]; then
   echo "ERROR: This script needs root privilges"
   onexit 1
+fi
+
+if [ -d ${FS_DIR}/debootstrap ]; then
+  echo "${PREPEND} Detected debootstrap dir in ${FS_DIR}"
+  echo "${PREPEND} This possibly mean that a previous debootstrap run failed, removing ${FS_DIR} ..."
+  rm -rf ${FS_DIR}
 fi
 
 if [ ! -d ${FS_DIR} ] || ${FORCE_CREATE_CHROOT}; then

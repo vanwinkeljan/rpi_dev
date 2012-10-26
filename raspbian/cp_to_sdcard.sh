@@ -55,6 +55,12 @@ onexit () {
 # Main 
 #
 
+if [ `id -u` -ne 0 ]; then
+  echo "ERROR: This script needs root privilges"
+  onexit 1
+fi
+
+
 mount ${SDCARD_DEV}2 ${MOUNT_DIR}
 
 if [ ! -d ${MOUNT_DIR}/boot ]; then
