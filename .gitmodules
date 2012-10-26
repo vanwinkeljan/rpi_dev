@@ -10,3 +10,6 @@
 [submodule "userland"]
 	path = userland
 	url = https://github.com/raspberrypi/userland.git
+[submodule "u-boot-pi"]
+	path = u-boot-pi
+	url = https://github.com/vanwinkeljan/u-boot-pi.git
