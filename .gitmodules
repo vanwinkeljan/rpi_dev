@@ -1,3 +1,12 @@
 [submodule "firmware"]
 	path = firmware
 	url = http://github.com/raspberrypi/firmware
+[submodule "linux"]
+	path = linux
+	url = http://github.com/raspberrypi/linux
+[submodule "tools"]
+	path = tools
+	url = http://github.com/raspberrypi/tools
+[submodule "userland"]
+	path = userland
+	url = https://github.com/raspberrypi/userland.git
