@@ -1,0 +1,12 @@
+setenv autoload no
+setenv loadaddr 0x00100000
+setenv tftpip 192.168.1.5
+setend tftpfile rpi.img
+if usb start; then
+    if dhcp; then
+        if tftpboot ${loadaddr} ${tftpip}:${tftpfile} ; then
+            go ${loadaddr};
+        fi;
+    fi;
+fi;
+
